@@ -388,6 +388,15 @@ under the License.
   </contributors>
 
   <properties>
+    <!--Added by Ella-->
+    <maven.compiler.target>1.9</maven.compiler.target>
+    <maven.compiler.source>1.9</maven.compiler.source>
+    <sonar.organization>elisaverza</sonar.organization>
+    <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+    <jacoco-maven-plugin.version>0.8.0</jacoco-maven-plugin.version>
+
+
+
     <project.build.outputTimestamp>2021-07-16T09:00:00Z</project.build.outputTimestamp>
     <syncope.version>${project.version}</syncope.version>
 
@@ -1974,22 +1983,6 @@ under the License.
       <plugins>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.10.1</version>
-          <configuration>
-            <release>${targetJdk}</release>
-            <useIncrementalCompilation>false</useIncrementalCompilation>
-            <showWarnings>true</showWarnings>
-            <showDeprecation>true</showDeprecation>
-            <compilerArgs>
-              <arg>-Xlint:unchecked</arg>
-              <arg>-parameters</arg>
-            </compilerArgs>
-          </configuration>
-        </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-resources-plugin</artifactId>
           <version>3.1.0</version>
           <configuration>
@@ -2250,21 +2243,55 @@ under the License.
           <version>3.7.2</version>
         </plugin>
 
-        <plugin>
-          <groupId>org.jacoco</groupId>
-          <artifactId>jacoco-maven-plugin</artifactId>
-          <version>0.8.7</version>
-        </plugin>
 
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.10.1</version>
+          <configuration>
+            <release>${targetJdk}</release>
+            <useIncrementalCompilation>false</useIncrementalCompilation>
+            <showWarnings>true</showWarnings>
+            <showDeprecation>true</showDeprecation>
+            <compilerArgs>
+              <arg>-Xlint:unchecked</arg>
+              <arg>-parameters</arg>
+            </compilerArgs>
+          </configuration>
+        </plugin>
+        <!--Added by Ella-->
         <plugin>
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
           <version>3.9.1.2184</version>
         </plugin>
+    
       </plugins>
     </pluginManagement>
 
     <plugins>
+      <!--Added by Ella-->
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco-maven-plugin.version}</version>
+        <executions>
+            <execution>
+              <goals>
+                <goal>prepare-agent</goal>
+              </goals>
+            </execution>
+              <execution>
+                <id>report-aggregate</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>report</goal>
+                </goals>
+             </execution>
+        </executions>
+      </plugin>
+
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
@@ -2841,6 +2868,8 @@ under the License.
     <module>ext</module>
     <module>archetype</module>
     <module>standalone</module>
+    <!--Added by Ella-->
+    <module>tests</module>
   </modules>
 
 </project>

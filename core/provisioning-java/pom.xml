@@ -38,6 +38,15 @@ under the License.
   </properties>
 
   <dependencies>
+    <!--Added by Ella-->
+    <dependency>
+      <groupId>org.pitest</groupId>
+      <artifactId>pitest-maven</artifactId>
+      <version>1.5.2</version>
+      <type>maven-plugin</type>
+    </dependency>
+
+
     <dependency> 
       <groupId>jakarta.servlet</groupId> 
       <artifactId>jakarta.servlet-api</artifactId> 
@@ -145,9 +154,11 @@ under the License.
       <artifactId>mockito-core</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/junit/junit -->
     <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter</artifactId>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -158,7 +169,43 @@ under the License.
   </dependencies>
 
   <build>
+ <!--Added by Ella-->
     <plugins>
+      <plugin>
+        <groupId>org.pitest</groupId>
+        <artifactId>pitest-maven</artifactId>
+        <version>1.5.2</version>
+        <configuration>
+            <targetClasses>
+                <param>org.apache.syncope.core.provisioning.java.utils.ConnObjectUtils*</param>
+            </targetClasses>
+            <targetTests>
+                <param>org.apache.syncope.core.provisioning.java.utils.ConnObjectUtilsTest</param>
+            </targetTests>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.5</version>
+        <executions>
+          <execution>
+            <id>prepare-agent</id>
+            <goals>
+             <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>report</id>
+            <goals>
+             <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
