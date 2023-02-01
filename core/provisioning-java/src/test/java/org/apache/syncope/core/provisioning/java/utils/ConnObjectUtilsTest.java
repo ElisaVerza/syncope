@@ -1,10 +1,13 @@
 package org.apache.syncope.core.provisioning.java.utils;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.*;
 
+import org.apache.syncope.common.lib.Attr;
+import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,17 +29,22 @@ public class ConnObjectUtilsTest {
     enum ObjectType {
         GUARDEDSTRING,
         GUARDEDBYTEARRAY,
-        STRING,
-        OTHER
+        OTHER,
+        BYTE
     }
 
     private GuardedString gsPass;
     private GuardedByteArray gbaPass;
     private String strPass;
-    private String passToWrite = "Test";
+    private Object passToWrite;
     private Object objPass;
     private ConnObjectUtils cou;
-    private ObjectType actuaObj;
+    private ObjectType actualObj;
+    private String fiql = "TestName";
+    private String attrName = "TestAttrName";
+    private boolean isSetNull;
+    private Set<Attribute> set = new HashSet<Attribute>();
+    private Attr attrRet;
 
     @Mock
     TemplateUtils templateUtils;
@@ -57,38 +65,88 @@ public class ConnObjectUtilsTest {
     @Parameters
     public static Collection<Object[]> getTestParameters(){
         return Arrays.asList(new Object[][]{     
-            {ObjectType.GUARDEDSTRING},
+            {ObjectType.GUARDEDSTRING, "Test", false},
+            {ObjectType.OTHER, "Test", false},
+            {ObjectType.OTHER, 1, true},
+            {ObjectType.OTHER, null, false},
+            {ObjectType.BYTE, "Test".getBytes(), false},
         });
     }
 
-    public ConnObjectUtilsTest(ObjectType actuaObj){
-        this.actuaObj = actuaObj;
+    public ConnObjectUtilsTest(ObjectType actualObj, Object passToWrite, boolean isSetNull) {
+        this.actualObj = actualObj;
+        this.passToWrite = passToWrite;
+        this.isSetNull = isSetNull;
     }
 
     @Before
     public void getPassSetUp(){
         cou = new ConnObjectUtils(templateUtils, realmDAO, userDAO, resourceDAO, passwordGenerator, mappingManager, anyUtilsFactory);
-        switch(actuaObj) {
-            case GUARDEDSTRING:
-                char[] passwordToChar = passToWrite.toCharArray();
-                gsPass = new GuardedString(passwordToChar);
-                objPass = gsPass;
-              break;
-            case GUARDEDBYTEARRAY:
-                byte[] passwordToByte = passToWrite.getBytes();
-                gbaPass = new GuardedByteArray(passwordTpByte);
-                break;
-            case STRING:
-                objPass = passToWrite;
-              break;
-            default:
-
+        switchCase();
+        Attribute attr;
+        if(!isSetNull){
+            if(passToWrite!=null){
+                attr = AttributeBuilder.build(attrName, objPass);
+            }
+            else{
+                attr = AttributeBuilder.build(attrName);
+            }
+            set.add(attr);
+            Attr[] attrArray = ConnObjectUtils.getConnObjectTO(fiql, set).getAttrs().toArray(new Attr[set.size()]);
+            attrRet = attrArray[0];
+        }
+        else{
+            set = null;
         }
     }
 
 
     @Test
-    public void dummyTest(){
-        assertEquals("Test", ConnObjectUtils.getPassword(objPass));
+    public void setPassTest(){
+        if(passToWrite!=null){
+            assertEquals(passToWrite.toString(), ConnObjectUtils.getPassword(objPass));
+        }
+    }
+
+    @Test
+    public void getConnObjectTOTest(){
+        if(!isSetNull){
+            if(passToWrite == null){
+                System.out.println(attrRet.getSchema());
+                assertEquals(0, attrRet.getValues().size());
+            }
+            else if(actualObj == ObjectType.GUARDEDSTRING || actualObj == ObjectType.OTHER){
+                assertEquals(passToWrite, attrRet.getValues().get(0));
+            }
+            else if(actualObj == ObjectType.BYTE){
+                assertEquals(Base64.getEncoder().encodeToString((byte[]) passToWrite), attrRet.getValues().get(0));
+            }
+            assertEquals(attrName, attrRet.getSchema());
+        }
+        else{
+            assertEquals(0, ConnObjectUtils.getConnObjectTO(fiql, set).getAttrs().size());
+        }
+        assertEquals(fiql, ConnObjectUtils.getConnObjectTO(fiql, set).getFiql());
+    }
+
+
+    public void switchCase(){
+        switch(actualObj) {
+            case GUARDEDSTRING:
+                char[] passwordToChar =String.valueOf(passToWrite).toCharArray();
+                gsPass = new GuardedString(passwordToChar);
+                objPass = gsPass;
+              break;
+            /*case GUARDEDBYTEARRAY:
+                byte[] passwordToByte = passToWrite.getBytes();
+                gbaPass = new GuardedByteArray(passwordToByte);
+                break;*/
+            case OTHER:
+            case BYTE:
+                objPass = passToWrite;
+              break;
+            default:
+
+        }
     }
 }
