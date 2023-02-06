@@ -13,15 +13,11 @@ import org.apache.syncope.core.persistence.api.dao.*;
 import org.apache.syncope.core.persistence.api.entity.*;
 import org.apache.syncope.core.persistence.api.entity.policy.PasswordPolicy;
 import org.apache.syncope.core.persistence.api.entity.resource.Provision;
-import org.apache.syncope.core.persistence.api.entity.task.AnyTemplatePullTask;
 import org.apache.syncope.core.persistence.api.entity.task.PullTask;
-import org.apache.syncope.core.persistence.jpa.dao.JPAAnyObjectDAO;
-import org.apache.syncope.core.persistence.jpa.dao.JPAGroupDAO;
 import org.apache.syncope.core.persistence.jpa.dao.JPARealmDAO;
 import org.apache.syncope.core.persistence.jpa.dao.JPAUserDAO;
 import org.apache.syncope.core.persistence.jpa.entity.*;
 import org.apache.syncope.core.persistence.jpa.entity.resource.JPAProvision;
-import org.apache.syncope.core.persistence.jpa.entity.task.JPAAnyTemplatePullTask;
 import org.apache.syncope.core.spring.policy.InvalidPasswordRuleConf;
 import org.apache.syncope.core.spring.security.DefaultPasswordGenerator;
 import org.identityconnectors.framework.common.objects.Attribute;
@@ -40,8 +36,6 @@ import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.common.security.GuardedByteArray;
 import org.apache.syncope.common.lib.request.AnyCR;
 
-import org.mockito.Mockito;
-
 
 @RunWith(value=Parameterized.class)
 public class ConnObjectUtilsTest {
@@ -52,7 +46,6 @@ public class ConnObjectUtilsTest {
         BYTE
     }
 
-    private GuardedString gsPass;
     private GuardedByteArray gbaPass;
     private String strPass;
     private final Object passToWrite;
@@ -67,15 +60,16 @@ public class ConnObjectUtilsTest {
     private ConnectorObject obj;
     private Provision provision;
     private PullTask pullTask;
-    private String anyCR;
+    private final String anyCR;
     private AnyUtilsFactory anyUtilsFactory;
     private final UserDAO userDAO = mock(JPAUserDAO.class);
     private final TemplateUtils templateUtils = mock(TemplateUtils.class);
-    private boolean generatePass;
-    private boolean randomPass;
+    private final boolean generatePass;
+    private final boolean randomPass;
     private RealmDAO realmDAO;
-    private boolean realmIsNull;
-    private String userPass;
+    private final boolean realmIsNull;
+    private final String passToSet = "PasswordToSet";
+
     @Mock
     ExternalResourceDAO resourceDAO;
     private PasswordGenerator passwordGenerator;
@@ -87,19 +81,18 @@ public class ConnObjectUtilsTest {
     @Parameters
     public static Collection<Object[]> getTestParameters(){
         return Arrays.asList(new Object[][]{
-                {ObjType.GUARDEDSTRING, "Test", "uCR", "", false, true, true, false},
-                {ObjType.OTHER, "Test", "uCR", "  ",false, true, true, true},
-                {ObjType.OTHER, 1, "other", " ",true, true, true, false},
-                {ObjType.OTHER, null, "uCR", "UserTestPass", false, true, true, false},
+                {ObjType.GUARDEDSTRING, "Test", "uCR", false, true, true, false}, //realm not null
+                {ObjType.OTHER, "Test", "uCR", false, true, true, true},//realm null
+                {ObjType.OTHER, 1, "other", true, true, true, false},//anyCR = GroupCR
+                {ObjType.OTHER, null, "uCR", false, false, true, false},//generatePass false
                 //{ObjType.BYTE, "Test".getBytes(), false},
         });
     }
 
-    public ConnObjectUtilsTest(ObjType actualObj, Object passToWrite, String anyCR, String userPass ,boolean isSetNull, boolean generatePass, boolean randomPass, boolean realmIsNull) {
+    public ConnObjectUtilsTest(ObjType actualObj, Object passToWrite, String anyCR ,boolean isSetNull, boolean generatePass, boolean randomPass, boolean realmIsNull) {
         this.actualObj = actualObj;
         this.passToWrite = passToWrite;
         this.anyCR = anyCR;
-        this.userPass = userPass;
         this.isSetNull = isSetNull;
         this.generatePass = generatePass;
         this.randomPass = randomPass;
@@ -158,16 +151,15 @@ public class ConnObjectUtilsTest {
 
     @Test
     public void getAnyCRTest(){
-        AnyCR aCR = cou.getAnyCR(obj, pullTask, provision, true);
-
+        AnyCR aCR = cou.getAnyCR(obj, pullTask, provision, generatePass);
         if(anyCR.equals("uCR")){
-            UserCR uCR = (UserCR) aCR;
-            uCR.setPassword(userPass);
-            if(userPass.matches(".*[a-zA-Z0-9!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]+.*")){
-                assertEquals(userPass, uCR.getPassword());
+            if(!generatePass || !randomPass){
+                assertNull(((UserCR) aCR).getPassword());
+
             }
-            else{
-                assertEquals(userPass, uCR.getPassword());
+            else {
+                assertEquals(passToSet, ((UserCR) aCR).getPassword());
+
                 if(realmIsNull){
                     verify(realmDAO, times(0)).findAncestors(any(Realm.class));
                 }
@@ -182,8 +174,6 @@ public class ConnObjectUtilsTest {
     }
 
     public void mockGenerator() throws InvalidPasswordRuleConf {
-        GroupDAO groupDAO = mock(JPAGroupDAO.class);
-        AnyObjectDAO anyObjectDAO = mock(JPAAnyObjectDAO.class);
         AnyCR aCR;
 
         realmDAO = mock(JPARealmDAO.class, RETURNS_DEEP_STUBS);
@@ -212,12 +202,12 @@ public class ConnObjectUtilsTest {
             when(realmDAO.findByFullPath(aCR.getRealm())).thenReturn(new JPARealm());
         }
 
-        when(passwordGenerator.generate(passwordPolicies)).thenReturn(userPass);
+        when(passwordGenerator.generate(passwordPolicies)).thenReturn(passToSet);
         when(pullTask.getDestinationRealm().getFullPath()).thenReturn("my/testing/path");
         when(provision.getAnyType().getKind()).thenReturn(AnyTypeKind.USER);
         when(provision.getAnyType().getKey()).thenReturn("key test");
-        when(anyUtilsFactory.getInstance(provision.getAnyType().getKind()).newAnyCR()).thenReturn(aCR);
         when(provision.getResource().isRandomPwdIfNotProvided()).thenReturn(randomPass);
+        when(anyUtilsFactory.getInstance(provision.getAnyType().getKind()).newAnyCR()).thenReturn(aCR);
     }
 
 
@@ -225,8 +215,7 @@ public class ConnObjectUtilsTest {
         switch(actualObj) {
             case GUARDEDSTRING:
                 char[] passwordToChar =String.valueOf(passToWrite).toCharArray();
-                gsPass = new GuardedString(passwordToChar);
-                objPass = gsPass;
+                objPass = new GuardedString(passwordToChar);
                 break;
             /*case GUARDEDBYTEARRAY:
                 byte[] passwordToByte = passToWrite.getBytes();
