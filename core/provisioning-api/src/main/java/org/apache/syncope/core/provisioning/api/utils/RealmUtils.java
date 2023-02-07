@@ -64,8 +64,10 @@ public final class RealmUtils {
         if (realms != null) {
             realms.forEach(realm -> {
                 if (realm.indexOf('@') == -1) {
+                    System.out.println("Qui1");
                     normalizingAddTo(normalized, realm);
                 } else {
+                    System.out.println("Qui2");
                     groupOwnership.add(realm);
                 }
             });
