@@ -2197,23 +2197,6 @@ under the License.
         </plugin>
 
         <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-checkstyle-plugin</artifactId>
-          <version>3.1.2</version>
-          <dependencies>
-            <dependency>
-              <groupId>com.puppycrawl.tools</groupId>
-              <artifactId>checkstyle</artifactId>
-              <version>10.1</version>
-            </dependency>
-          </dependencies>
-          <configuration>
-            <configLocation>${rootpom.basedir}/src/main/resources/org/apache/syncope/checkstyle.xml</configLocation>
-            <targetJdk>${targetJdk}</targetJdk>
-          </configuration>
-        </plugin>
-
-        <plugin>
           <groupId>io.fabric8</groupId>
           <artifactId>docker-maven-plugin</artifactId>
           <version>0.39.1</version>
@@ -2332,23 +2315,6 @@ under the License.
             <phase>verify</phase>
             <goals>
               <goal>modernizer</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <configuration>
-          <resourceExcludes>**/LICENSE,**/NOTICE</resourceExcludes>
-        </configuration>
-        <executions>
-          <execution>
-            <id>checkstyle-check</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>check</goal>
             </goals>
           </execution>
         </executions>
@@ -2508,25 +2474,6 @@ under the License.
                 </resource>
               </resources>
             </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.geronimo.genesis.plugins</groupId>
-        <artifactId>tools-maven-plugin</artifactId>
-        <version>1.4</version>
-        <configuration>
-          <!-- Fail the build if any artifacts are missing legal files -->
-          <strict>true</strict>
-        </configuration>
-        <executions>
-          <execution>
-            <id>verify-legal-files</id>
-            <phase>${ianal.phase}</phase>
-            <goals>
-              <goal>verify-legal-files</goal>
-            </goals>
           </execution>
         </executions>
       </plugin>
@@ -2803,35 +2750,6 @@ under the License.
               <locales>en</locales>
               <generateProjectInfo>false</generateProjectInfo>
             </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>skipTests</id>
-
-      <properties>
-        <skipTests>true</skipTests>
-        <ianal.phase>none</ianal.phase>
-        <modernizer.skip>true</modernizer.skip>
-        <rat.skip>true</rat.skip>
-        <checkstyle.skip>true</checkstyle.skip>
-      </properties>
-
-      <build>
-        <defaultGoal>clean install</defaultGoal>
-
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-checkstyle-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>checkstyle-check</id>
-                <phase>none</phase>
-              </execution>
-            </executions>
           </plugin>
         </plugins>
       </build>
