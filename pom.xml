@@ -393,12 +393,6 @@ under the License.
     <maven.compiler.source>1.9</maven.compiler.source>
     <sonar.organization>elisaverza</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-    <sonar.language>java</sonar.language>
-    <sonar.java.source>${targetJdk}</sonar.java.source>
-    <sonar.junit.reportPaths>${project.build.directory}/surefire-reports</sonar.junit.reportPaths>
-    <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>   
-    <sonar.internal.analysis.dbd>false</sonar.internal.analysis.dbd>
-
 
     <project.build.outputTimestamp>2021-07-16T09:00:00Z</project.build.outputTimestamp>
     <syncope.version>${project.version}</syncope.version>
