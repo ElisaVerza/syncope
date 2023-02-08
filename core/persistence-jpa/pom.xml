@@ -162,6 +162,7 @@ under the License.
             username=sa,
             password=
           </connectionProperties>
+          <classesDirectory>${project.build.outputDirectory}</classesDirectory>
         </configuration>
         <executions>
           <execution>
